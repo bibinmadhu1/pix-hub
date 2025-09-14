@@ -6,12 +6,13 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import ReactCrop, { type Crop, type PixelCrop } from 'react-image-crop';
-import { generateEditedImage, generateFilteredImage, generateAdjustedImage } from './services/geminiService';
+import { generateEditedImage, generateFilteredImage, generateAdjustedImage, generateUpscaledImage } from './services/geminiService';
 import Header from './components/Header';
 import Spinner from './components/Spinner';
 import FilterPanel from './components/FilterPanel';
 import AdjustmentPanel from './components/AdjustmentPanel';
 import CropPanel from './components/CropPanel';
+import UpscalePanel from './components/UpscalePanel';
 import { UndoIcon, RedoIcon, EyeIcon } from './components/icons';
 import StartScreen from './components/StartScreen';
 
@@ -32,7 +33,7 @@ const dataURLtoFile = (dataurl: string, filename: string): File => {
     return new File([u8arr], filename, {type:mime});
 }
 
-type Tab = 'retouch' | 'adjust' | 'filters' | 'crop';
+type Tab = 'retouch' | 'adjust' | 'filters' | 'crop' | 'upscale';
 
 const App: React.FC = () => {
   const [history, setHistory] = useState<File[]>([]);
@@ -180,6 +181,29 @@ const App: React.FC = () => {
         setIsLoading(false);
     }
   }, [currentImage, addImageToHistory]);
+
+  const handleApplyUpscale = useCallback(async (scaleFactor: number) => {
+    if (!currentImage) {
+      setError('No image loaded to upscale.');
+      return;
+    }
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+        const upscaledImageUrl = await generateUpscaledImage(currentImage, scaleFactor);
+        const newImageFile = dataURLtoFile(upscaledImageUrl, `upscaled-${Date.now()}.png`);
+        addImageToHistory(newImageFile);
+    } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+        setError(`Failed to upscale the image. ${errorMessage}`);
+        console.error(err);
+    } finally {
+        setIsLoading(false);
+    }
+  }, [currentImage, addImageToHistory]);
+
 
   const handleApplyCrop = useCallback(() => {
     if (!completedCrop || !imgRef.current) {
@@ -386,7 +410,7 @@ const App: React.FC = () => {
         </div>
         
         <div className="w-full bg-gray-800/80 border border-gray-700/80 rounded-lg p-2 flex items-center justify-center gap-2 backdrop-blur-sm">
-            {(['retouch', 'crop', 'adjust', 'filters'] as Tab[]).map(tab => (
+            {(['retouch', 'adjust', 'filters', 'crop', 'upscale'] as Tab[]).map(tab => (
                  <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
@@ -429,6 +453,7 @@ const App: React.FC = () => {
             {activeTab === 'crop' && <CropPanel onApplyCrop={handleApplyCrop} onSetAspect={setAspect} isLoading={isLoading} isCropping={!!completedCrop?.width && completedCrop.width > 0} />}
             {activeTab === 'adjust' && <AdjustmentPanel onApplyAdjustment={handleApplyAdjustment} isLoading={isLoading} />}
             {activeTab === 'filters' && <FilterPanel onApplyFilter={handleApplyFilter} isLoading={isLoading} />}
+            {activeTab === 'upscale' && <UpscalePanel onApplyUpscale={handleApplyUpscale} isLoading={isLoading} />}
         </div>
         
         <div className="flex flex-wrap items-center justify-center gap-3 mt-6">

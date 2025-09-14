@@ -4,7 +4,7 @@
 */
 
 import React, { useState } from 'react';
-import { UploadIcon, MagicWandIcon, PaletteIcon, SunIcon } from './icons';
+import { UploadIcon, MagicWandIcon, PaletteIcon, SunIcon, UpscaleIcon } from './icons';
 
 interface StartScreenProps {
   onFileSelect: (files: FileList | null) => void;
@@ -46,7 +46,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ onFileSelect }) => {
         </div>
 
         <div className="mt-16 w-full">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
                 <div className="bg-black/20 p-6 rounded-lg border border-gray-700/50 flex flex-col items-center text-center">
                     <div className="flex items-center justify-center w-12 h-12 bg-gray-700 rounded-full mb-4">
                        <MagicWandIcon className="w-6 h-6 text-blue-400" />
@@ -67,6 +67,13 @@ const StartScreen: React.FC<StartScreenProps> = ({ onFileSelect }) => {
                     </div>
                     <h3 className="text-xl font-bold text-gray-100">Pro Adjustments</h3>
                     <p className="mt-2 text-gray-400">Enhance lighting, blur backgrounds, or change the mood. Get studio-quality results without complex tools.</p>
+                </div>
+                <div className="bg-black/20 p-6 rounded-lg border border-gray-700/50 flex flex-col items-center text-center">
+                    <div className="flex items-center justify-center w-12 h-12 bg-gray-700 rounded-full mb-4">
+                       <UpscaleIcon className="w-6 h-6 text-blue-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-100">AI Upscaling</h3>
+                    <p className="mt-2 text-gray-400">Increase image resolution and enhance details for crystal-clear results, perfect for printing or high-def displays.</p>
                 </div>
             </div>
         </div>

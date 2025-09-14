@@ -175,3 +175,37 @@ Output: Return ONLY the final adjusted image. Do not return text.`;
     
     return handleApiResponse(response, 'adjustment');
 };
+
+/**
+ * Generates an upscaled image using generative AI.
+ * @param originalImage The original image file.
+ * @param scaleFactor The factor by which to upscale the image (e.g., 2 for 2x).
+ * @returns A promise that resolves to the data URL of the upscaled image.
+ */
+export const generateUpscaledImage = async (
+    originalImage: File,
+    scaleFactor: number,
+): Promise<string> => {
+    console.log(`Starting upscale generation: ${scaleFactor}x`);
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+    
+    const originalImagePart = await fileToPart(originalImage);
+    const prompt = `You are an expert photo editor AI specializing in image upscaling. Your task is to increase the resolution of the provided image by a factor of ${scaleFactor}x.
+    
+Editing Guidelines:
+- Enhance details, reduce noise, and maintain photorealism.
+- The output image must be exactly ${scaleFactor} times the original dimensions in both width and height.
+- Preserve the original content and composition perfectly.
+
+Output: Return ONLY the final upscaled image. Do not return text.`;
+    const textPart = { text: prompt };
+
+    console.log('Sending image and upscale prompt to the model...');
+    const response: GenerateContentResponse = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image-preview',
+        contents: { parts: [originalImagePart, textPart] },
+    });
+    console.log('Received response from model for upscale.', response);
+    
+    return handleApiResponse(response, 'upscale');
+};
